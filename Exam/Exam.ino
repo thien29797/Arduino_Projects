@@ -5,9 +5,12 @@
 #include <MaxMatrix.h>
 #include <DHT.h>
 #include <TM1637Display.h>
+#include <IRremote.h>
 
 int relayPin = 2;
-//int buttonPin = 3;
+const int receiverPin = 3;
+IRrecv irrecv(receiverPin);
+decode_results results;
 
 // SDA -> 10
 // MOSI -> 11
@@ -82,7 +85,9 @@ void setup()
 
 //  display.setBrightness(0x0a);
   pinMode(relayPin, OUTPUT);
-  //digitalWrite(relayPin, HIGH);  
+  //digitalWrite(relayPin, HIGH);
+
+  irrecv.enableIRIn();
 
   //pinMode(buttonPin, INPUT);
 
@@ -116,7 +121,28 @@ void loop()
   lcd.setCursor(15, 1);  
   lcd.print("C");
 
-  matrixDisplay(temp);  
+  matrixDisplay(temp);
+
+  delay(1000);
+
+  if (irrecv.decode(&results))
+  {
+    
+    if (results.value == 16724175 || results.value == 2534850111) {
+      digitalWrite(relayPin, LOW);
+           
+    }
+
+    if (results.value == 16718055 || results.value == 4294967295 || results.value == 1033561079) {
+      digitalWrite(relayPin, HIGH);
+          
+    }
+  }
+  Serial.println(results.value);
+  irrecv.resume();
+  delay(200);
+
+//  remote();
 
 //  if (buttonStatus == HIGH) {
 //    digitalWrite(relayPin, HIGH);
@@ -212,10 +238,30 @@ void sweepServo() {
 //}
 
 void matrixDisplay(float temp) {
-  if (temp <= 30) {
+  if (temp <= 32) {
     m.writeSprite(0, 0, smile);
   }
   else {
     m.writeSprite(0, 0, sad);
   }
+}
+
+void remote() {
+  
+  if (irrecv.decode(&results))
+  {
+    
+    if (results.value == 16724175 || results.value == 2534850111) {
+      digitalWrite(relayPin, LOW);
+           
+    }
+
+    if (results.value == 16718055 || results.value == 4294967295) {
+      digitalWrite(relayPin, HIGH);
+          
+    }
+  }
+  Serial.println(results.value);
+  irrecv.resume();
+  delay(200);
 }
